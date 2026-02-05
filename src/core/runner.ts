@@ -1,50 +1,90 @@
-import { OpenAI } from 'openai'; // Mocklayabilirsin veya gerçek kullanabilirsin
 import { Evaluator } from '../evaluators/static_analysis';
 import { Reporter } from '../reporters/markdown';
+import { EvaluationResult, TestCase, TestSuite } from '../types';
+
+export interface SuiteRunSummary {
+  suiteId: string;
+  suiteName: string;
+  total: number;
+  passed: number;
+  failed: number;
+  results: Array<{ caseId: string; result: EvaluationResult }>;
+}
 
 export class TypeSentryRunner {
-    private evaluator: Evaluator;
+  private evaluator: Evaluator;
 
-    constructor() {
-        this.evaluator = new Evaluator();
+  constructor() {
+    this.evaluator = new Evaluator();
+  }
+
+  async runSuite(suite: TestSuite): Promise<SuiteRunSummary> {
+    console.log(`🚀 Starting Suite: ${suite.name}`);
+
+    const summary: SuiteRunSummary = {
+      suiteId: suite.suite_id,
+      suiteName: suite.name,
+      total: suite.cases.length,
+      passed: 0,
+      failed: 0,
+      results: []
+    };
+
+    for (const testCase of suite.cases) {
+      console.log(`🧪 Testing Case: ${testCase.id}`);
+
+      const modelOutput = await this.mockLLMCall(testCase);
+      const code = this.extractCode(modelOutput);
+      const result = await this.evaluator.evaluate(code, testCase);
+
+      summary.results.push({ caseId: testCase.id, result });
+
+      if (!result.passed) {
+        summary.failed += 1;
+        console.error(`❌ FAILURE DETECTED: ${testCase.id}`);
+        await Reporter.generateReproPack(testCase, code, result.errors);
+      } else {
+        summary.passed += 1;
+        console.log(`✅ PASSED: ${testCase.id}`);
+      }
     }
 
-    async runSuite(suite: any) {
-        console.log(`🚀 Starting Suite: ${suite.name}`);
-        
-        for (const testCase of suite.cases) {
-            console.log(`🧪 Testing Case: ${testCase.id}`);
-            
-            // 1. Prompt the Model (Simulated for GitHub Demo)
-            const modelOutput = await this.mockLLMCall(testCase.prompt);
-            
-            // 2. Extract Code Block
-            const code = this.extractCode(modelOutput);
-            
-            // 3. Run Checks (Compiler, Linter, Security Regex)
-            const result = await this.evaluator.evaluate(code, testCase);
-            
-            // 4. Handle Failure
-            if (!result.passed) {
-                console.error(`❌ FAILURE DETECTED: ${testCase.id}`);
-                await Reporter.generateReproPack(testCase, code, result.errors);
-            } else {
-                console.log(`✅ PASSED: ${testCase.id}`);
-            }
-        }
+    console.log(`\n📊 Suite Summary: ${summary.passed}/${summary.total} passed, ${summary.failed} failed.`);
+    return summary;
+  }
+
+  private extractCode(output: string): string {
+    const match = output.match(/```(?:typescript|ts)?\n([\s\S]*?)```/i);
+    return match ? match[1].trim() : output.trim();
+  }
+
+  private async mockLLMCall(testCase: TestCase): Promise<string> {
+    const prompt = testCase.prompt.toLowerCase();
+
+    if (prompt.includes('sql query')) {
+      return "```typescript\nconst query = 'SELECT * FROM users WHERE email = ' + email;\n```";
     }
 
-    private extractCode(output: string): string {
-        const match = output.match(/```typescript([\s\S]*?)```/);
-        return match ? match[1].trim() : '';
+    if (prompt.includes('jwt') || prompt.includes('authorization')) {
+      return `\`\`\`typescript
+import { Request, Response, NextFunction } from 'express';
+
+export function verifyJwt(req: Request, res: Response, next: NextFunction) {
+  const auth = req.headers.authorization;
+  if (!auth?.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const token = auth.slice('Bearer '.length);
+  if (!process.env.JWT_SECRET || !token) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  next();
+}
+\`\`\``;
     }
 
-    // GitHub'da kodun çalışması için API key gerekmesin diye mock data
-    private async mockLLMCall(prompt: string): Promise<string> {
-        // Simulating a common LLM mistake (SQL Injection)
-        if (prompt.includes("SQL query")) {
-            return "```typescript\nconst query = 'SELECT * FROM users WHERE email = ' + email;\n```";
-        }
-        return "```typescript\nconsole.log('Valid code');\n```";
-    }
+    return "```typescript\nexport const ok = true;\n```";
+  }
 }

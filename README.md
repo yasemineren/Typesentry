@@ -1,30 +1,63 @@
-# Typesentry
-# 🧪 TypeSentry: The LLM Torture-Test Harness
+# TypeSentry
+# 🧪 TypeSentry: The LLM Torture-Test Harness for TypeScript
 
-> **"Trust, but Verify."** — An automated evaluation framework designed to stress-test Large Language Models (LLMs) on complex TypeScript scenarios, catching failures in concurrency, security, and type safety before they reach production.
+> **"Trust, but Verify."** TypeSentry evaluates Large Language Models with adversarial TypeScript prompts and catches failures in security, async logic, and type safety before code reaches production.
 
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)
 ![Node.js](https://img.shields.io/badge/Node.js-18+-green)
 ![Status](https://img.shields.io/badge/Status-Experimental-orange)
 
-## 🎯 The Problem
-LLMs are great at generating boilerplate, but they often struggle with:
-* **Subtle Concurrency Bugs:** Race conditions in `async/await` loops.
-* **Security Footguns:** Suggesting raw SQL strings or hardcoded secrets.
-* **Type Hallucinations:** Inventing generic constraints that don't exist.
+## Why this project exists
+LLMs can produce convincing code that still fails in critical ways:
+- **Concurrency bugs** (`forEach(async ...)`, race conditions)
+- **Security footguns** (SQL injection, leaking secrets)
+- **Type hallucinations** (`as any`, broken generic assumptions)
+- **Operational gaps** (weak error paths, no reproducible artifacts)
 
-**TypeSentry** is not just a linter; it's an **adversarial testing agent** that prompts models with known "trap" scenarios and rigorously validates their output.
+TypeSentry turns these into measurable test cases.
 
-## 🏗 Architecture
+## Architecture
+1. **Suite definitions** (`src/suites/*.json`) model real-world engineering tasks.
+2. **Runner** (`src/core/runner.ts`) executes each case against model output (mocked by default).
+3. **Static evaluator** (`src/evaluators/static_analysis.ts`) checks:
+   - forbidden regex patterns
+   - required regex patterns
+   - strict TypeScript compilation
+4. **Repro pack reporter** (`src/reporters/markdown.ts`) stores prompt/code/errors per failure in `examples/`.
 
-1.  **Challenge Suites:** JSON-based scenario definitions (OOP, REST, Security).
-2.  **Runner Engine:** Orchestrates the prompt-response cycle with OpenAI/Anthropic APIs.
-3.  **Static Analysis Guard:** Runs `tsc`, `eslint`, and custom security regex patterns on generated code.
-4.  **Repro Pack Generator:** Automatically creates a folder with artifacts (prompt, code, error log) when a failure is detected.
+## Included suites
+- `src/suites/security_suite.json`
+  - JWT handling
+  - SQL query safety
+  - password hashing hygiene
+- `src/suites/engineering_suite.json`
+  - async concurrency and retry patterns
+  - typed REST client expectations
+  - event-driven idempotency workflows
 
-## 🚀 Usage
-
-### 1. Run a Test Suite
+## Usage
 ```bash
-# Runs the security suite against GPT-4 (or mock mode)
+npm install
 npm start -- run suites/security_suite.json
+npm start -- run suites/engineering_suite.json
+```
+
+You can pass either `suites/...` or `src/suites/...`; CLI resolves both.
+
+## Output example
+On failure, TypeSentry creates:
+```
+examples/repro_pack_<CASE_ID>_<TIMESTAMP>/
+  ├── prompt.txt
+  ├── generated_code.ts
+  └── analysis_report.md
+```
+
+## Scripts
+- `npm start -- run <suite-path>`: run suite
+- `npm run typecheck`: TypeScript compile check
+
+## Next steps (recommended)
+- Plug real model providers (OpenAI/Anthropic) behind a provider interface.
+- Add deterministic scoring weights per failure category.
+- Add CI job that uploads repro packs as artifacts.
