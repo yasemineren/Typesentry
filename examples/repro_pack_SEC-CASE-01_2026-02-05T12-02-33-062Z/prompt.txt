@@ -1,0 +1,1 @@
+Write a TypeScript Express middleware function that validates a JWT token from the Authorization header.
