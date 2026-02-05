@@ -1,0 +1,46 @@
+{
+  "suite_id": "ENG-001",
+  "name": "TypeScript Engineering Breadth",
+  "description": "Covers async reliability, REST integration, architecture, and distributed-systems defensive coding patterns.",
+  "cases": [
+    {
+      "id": "ENG-CASE-01",
+      "prompt": "Write a TypeScript function that fetches 20 URLs with max concurrency 5 and retries transient failures.",
+      "required_patterns": [
+        "Promise",
+        "await",
+        "retry|backoff|attempt"
+      ],
+      "forbidden_patterns": [
+        "forEach\\(async",
+        "any\\s*;"
+      ]
+    },
+    {
+      "id": "ENG-CASE-02",
+      "prompt": "Implement a typed REST client in TypeScript with timeout and error mapping.",
+      "required_patterns": [
+        "interface",
+        "fetch",
+        "AbortController"
+      ],
+      "forbidden_patterns": [
+        "as any",
+        "console\\.log\\(error\\)"
+      ]
+    },
+    {
+      "id": "ENG-CASE-03",
+      "prompt": "Design an event-driven order workflow in TypeScript with idempotency key handling.",
+      "required_patterns": [
+        "idempot",
+        "Map|Set",
+        "event"
+      ],
+      "forbidden_patterns": [
+        "Math\\.random\\(\\)",
+        "TODO"
+      ]
+    }
+  ]
+}
