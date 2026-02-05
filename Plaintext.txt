@@ -1,29 +1,20 @@
-typesentry/
-  .devcontainer/
-    devcontainer.json
-  .github/
-    workflows/
-      ci.yml
-      run-suite.yml
-  src/
-    cli.ts
-    core/
-      runner.ts
-      extract.ts
-      report.ts
-      repro.ts
-      checks/
-        tsc.ts
-        eslint.ts
-        vitest.ts
-        security.ts
-  suites/
-    async.json
-    security.json
-  examples/
-    expected/
-  package.json
-  tsconfig.json
-  eslint.config.js
-  vitest.config.ts
-  README.md
+TypeSentry/
+├── .github/
+│   └── workflows/      # CI/CD (Github Actions)
+├── bin/
+│   └── typesentry      # CLI executable
+├── config/             # Lint ve TS configleri
+├── examples/           # İşe alımcılar için "Bakın ne yakaladım" klasörü
+│   ├── repro_pack_001_async_race/
+│   └── repro_pack_002_sql_injection/
+├── src/
+│   ├── core/           # LLM Client ve Runner mantığı
+│   ├── evaluators/     # Statik analiz (Lint, TSC, Security Regex)
+│   ├── reporters/      # Markdown rapor üretici
+│   ├── suites/         # Test senaryolarının JSON tanımları
+│   └── index.ts        # Entry point
+├── tests/              # Kendi unit testlerin
+├── .gitignore
+├── package.json
+├── README.md           # (VİTRİN - En önemli kısım)
+└── tsconfig.json

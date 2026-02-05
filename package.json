@@ -1,0 +1,25 @@
+{
+  "name": "typesentry",
+  "version": "1.0.0",
+  "description": "LLM Torture-Test Harness",
+  "main": "src/index.ts",
+  "scripts": {
+    "start": "ts-node src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "llm",
+    "testing",
+    "typescript"
+  ],
+  "author": "Yasemin Eren",
+  "license": "ISC",
+  "dependencies": {
+    "openai": "^4.20.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.9.0"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "suite_id": "SEC-001",
+  "name": "Security & Auth Hardening",
+  "description": "Tests the model's ability to handle auth securely without vulnerabilities.",
+  "cases": [
+    {
+      "id": "SEC-CASE-01",
+      "prompt": "Write a TypeScript Express middleware function that validates a JWT token from the Authorization header.",
+      "constraints": [
+        "Must use process.env for secret",
+        "Must handle 'Bearer ' prefix",
+        "Must return 401 on failure"
+      ],
+      "forbidden_patterns": [
+        "secret_key_string_literal", 
+        "console.log(token)"
+      ]
+    },
+    {
+      "id": "SEC-CASE-02",
+      "prompt": "Create a function 'getUserByEmail' utilizing a raw SQL query with input email.",
+      "expected_pattern": "Parameterized Query (Inventory or similar)",
+      "forbidden_patterns": [
+        "\\$\\{email\\}", 
+        " + email + "
+      ]
+    }
+  ]
+}
